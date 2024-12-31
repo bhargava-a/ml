@@ -1,0 +1,81 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler, Normalizer
+from sklearn.decomposition import PCA
+
+M = pd.read_csv('SampleDataset.csv')  # Path of dataset file
+
+M = M.drop('CUST_ID', axis=1)
+
+M.fillna(method='ffill', inplace=True)
+
+scalerFD = StandardScaler()
+M_scaled = scalerFD.fit_transform(M)
+
+normalizer = Normalizer()
+M_normalized = normalizer.fit_transform(M_scaled)
+
+pcaFD = PCA(n_components=2)
+M_principal = pcaFD.fit_transform(M_normalized)
+M_principal = pd.DataFrame(M_principal, columns=['C1', 'C2'])
+
+db_default = DBSCAN(eps=0.0375, min_samples=3).fit(M_principal)
+labeling = db_default.labels_
+
+plt.scatter(
+    M_principal['C1'][labeling != -1],
+    M_principal['C2'][labeling != -1],
+    c=labeling[labeling != -1],
+    cmap='viridis',
+    s=50,
+    alpha=0.7,
+    label='Clusters'
+)
+
+plt.scatter(
+    M_principal['C1'][labeling == -1],
+    M_principal['C2'][labeling == -1],
+    c='red',
+    s=50,
+    alpha=0.7,
+    label='Noise'
+)
+
+plt.title("DBSCAN Clustering with PCA")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.legend()
+plt.show()
+
+db_tuned = DBSCAN(eps=0.0375, min_samples=50).fit(M_principal)
+labeling_tuned = db_tuned.labels_
+
+plt.scatter(
+    M_principal['C1'][labeling_tuned != -1],
+    M_principal['C2'][labeling_tuned != -1],
+    c=labeling_tuned[labeling_tuned != -1],
+    cmap='viridis',
+    s=50,
+    alpha=0.7,
+    label='Clusters'
+)
+
+plt.scatter(
+    M_principal['C1'][labeling_tuned == -1],
+    M_principal['C2'][labeling_tuned == -1],
+    c='red',
+    s=50,
+    alpha=0.7,
+    label='Noise'
+)
+
+plt.title("DBSCAN Clustering with Tuned Parameters")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.legend()
+plt.show()
+
+labeling
+M_principal
